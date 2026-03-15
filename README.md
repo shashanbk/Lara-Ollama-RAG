@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
 <p align="center">
@@ -62,3 +63,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+=======
+# Lara-Ollama-RAG
+A high-performance, local RAG system for Laravel 11. Chat with your documents using Ollama and pgvector. Features asynchronous background processing via Redis, smart paragraph chunking, and real-time response streaming. 100% Private. 100% Local. 🐘
+>>>>>>> 9bd1ec3d6828f73202adc3d7f077d9778f9234d4
