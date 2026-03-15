@@ -1,69 +1,84 @@
-<<<<<<< HEAD
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+Lara-Ollama-RAG 🧠🐘
+![alt text](https://img.shields.io/badge/Laravel-11.x-red.svg)
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![alt text](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)
 
-## About Laravel
+![alt text](https://img.shields.io/badge/license-MIT-green.svg)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+![alt text](https://img.shields.io/badge/AI-Ollama-orange.svg)
+Lara-Ollama-RAG is a high-performance, locally-hosted Retrieval-Augmented Generation (RAG) system built on Laravel 11. It enables developers to transform unstructured document directories into a searchable, intelligent knowledge base without any data leaving their infrastructure.
+🏗️ System Architecture
+The project is designed with scalability in mind, utilizing a decoupled architecture that separates heavy computational tasks (AI embeddings) from the user-facing web interface.
+1. The Ingestion Pipeline (Asynchronous)
+Artisan CLI Scanner: Recursively scans directories and registers documents.
+Smart Paragraph Chunker: Implements paragraph-aware splitting to preserve semantic context (avoiding mid-sentence cuts).
+Redis Queue: Dispatches background jobs using Laravel Horizon/Queues to prevent web-thread blocking during large-scale ingestion.
+Vectorization: Communicates with the nomic-embed-text model via Ollama to generate 768-dimension vectors.
+2. The Storage Layer (pgvector)
+PostgreSQL 17: Serves as the primary relational store.
+Vector Extension: Uses pgvector for mathematical similarity lookups.
+HNSW Indexing: Implements Hierarchical Navigable Small World (HNSW) indexing on the embedding column for sub-second retrieval performance across millions of records.
+3. The Retrieval Engine (RAG Flow)
+Query Embedding: The user's question is vectorized in real-time.
+Similarity Search: Performs a Cosine Distance comparison in the database to find the top 
+K
+K
+ most relevant document chunks.
+Prompt Augmentation: The retrieved context is injected into a specialized system prompt.
+Generation: Llama 3.2 generates an answer based strictly on the provided context.
+🌊 Real-Time Streaming UI
+The frontend is built for a premium UX, mimicking modern AI platforms:
+Server-Sent Events (SSE): The Laravel backend pipes chunks from the Ollama API directly to the browser.
+AlpineJS Reactivity: A lightweight frontend logic layer captures the stream and updates the UI character-by-character.
+Auto-Scrolling Messaging: A smooth, reactive thread that handles dynamic content length.
+🛠️ Technical Stack
+Backend: Laravel 11 (PHP 8.2+)
+AI Models:
+Chat: llama3.2:3b-instruct-q5_K_M
+Embeddings: nomic-embed-text
+Database: PostgreSQL + pgvector
+Queue: Redis (via predis)
+Frontend: Tailwind CSS + AlpineJS
+🚀 Quick Start
+1. Infrastructure Setup
+Run the vector-enabled database via Docker:
+code
+Bash
+docker run --name lara-recall-db -e POSTGRES_PASSWORD=root -p 5433:5432 -d pgvector/pgvector:pg17
+2. Environment Configuration
+Set up your .env to connect to the local AI and Database:
+code
+Env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5433
+DB_DATABASE=postgres
+DB_USERNAME=postgres
+DB_PASSWORD=root
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+QUEUE_CONNECTION=redis
+REDIS_CLIENT=predis
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-=======
-# Lara-Ollama-RAG
-A high-performance, local RAG system for Laravel 11. Chat with your documents using Ollama and pgvector. Features asynchronous background processing via Redis, smart paragraph chunking, and real-time response streaming. 100% Private. 100% Local. 🐘
->>>>>>> 9bd1ec3d6828f73202adc3d7f077d9778f9234d4
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL_CHAT=llama3.2:3b-instruct-q5_K_M
+OLLAMA_MODEL_EMBED=nomic-embed-text
+3. Usage
+A. Ingest knowledge:
+code
+Bash
+php artisan recall:ingest /path/to/documents
+B. Start the scalable worker:
+code
+Bash
+php artisan queue:work
+C. Launch and Chat:
+code
+Bash
+php artisan serve
+📂 Key Codebase Highlights
+app/Services/RecallEngine.php: The "Brain" of the application handling vector math and AI prompts.
+app/Jobs/GenerateEmbeddingJob.php: Scalable background processing for AI vectors.
+app/Http/Controllers/ChatController.php: Handles the SSE streaming logic.
+app/Console/Commands/IngestFiles.php: The recursive document scanner.
+📄 License
+Built with ❤️ for the Laravel and AI Community.
