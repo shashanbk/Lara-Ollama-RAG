@@ -1,54 +1,86 @@
-Lara-Ollama-RAG 🧠🐘
-![alt text](https://img.shields.io/badge/Laravel-11.x-red.svg)
+# Lara-Ollama-RAG 🧠🐘
 
-![alt text](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)
+> **A high-performance, private, and scalable RAG (Retrieval-Augmented Generation) system built for Laravel 11.**
 
-![alt text](https://img.shields.io/badge/license-MIT-green.svg)
+![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Local_AI-white?style=for-the-badge&logo=ollama&logoColor=black)
 
-![alt text](https://img.shields.io/badge/AI-Ollama-orange.svg)
-Lara-Ollama-RAG is a high-performance, locally-hosted Retrieval-Augmented Generation (RAG) system built on Laravel 11. It enables developers to transform unstructured document directories into a searchable, intelligent knowledge base without any data leaving their infrastructure.
-🏗️ System Architecture
-The project is designed with scalability in mind, utilizing a decoupled architecture that separates heavy computational tasks (AI embeddings) from the user-facing web interface.
-1. The Ingestion Pipeline (Asynchronous)
-Artisan CLI Scanner: Recursively scans directories and registers documents.
-Smart Paragraph Chunker: Implements paragraph-aware splitting to preserve semantic context (avoiding mid-sentence cuts).
-Redis Queue: Dispatches background jobs using Laravel Horizon/Queues to prevent web-thread blocking during large-scale ingestion.
-Vectorization: Communicates with the nomic-embed-text model via Ollama to generate 768-dimension vectors.
-2. The Storage Layer (pgvector)
-PostgreSQL 17: Serves as the primary relational store.
-Vector Extension: Uses pgvector for mathematical similarity lookups.
-HNSW Indexing: Implements Hierarchical Navigable Small World (HNSW) indexing on the embedding column for sub-second retrieval performance across millions of records.
-3. The Retrieval Engine (RAG Flow)
-Query Embedding: The user's question is vectorized in real-time.
-Similarity Search: Performs a Cosine Distance comparison in the database to find the top 
-K
-K
- most relevant document chunks.
-Prompt Augmentation: The retrieved context is injected into a specialized system prompt.
-Generation: Llama 3.2 generates an answer based strictly on the provided context.
-🌊 Real-Time Streaming UI
-The frontend is built for a premium UX, mimicking modern AI platforms:
-Server-Sent Events (SSE): The Laravel backend pipes chunks from the Ollama API directly to the browser.
-AlpineJS Reactivity: A lightweight frontend logic layer captures the stream and updates the UI character-by-character.
-Auto-Scrolling Messaging: A smooth, reactive thread that handles dynamic content length.
-🛠️ Technical Stack
-Backend: Laravel 11 (PHP 8.2+)
-AI Models:
-Chat: llama3.2:3b-instruct-q5_K_M
-Embeddings: nomic-embed-text
-Database: PostgreSQL + pgvector
-Queue: Redis (via predis)
-Frontend: Tailwind CSS + AlpineJS
-🚀 Quick Start
-1. Infrastructure Setup
-Run the vector-enabled database via Docker:
-code
-Bash
+---
+
+## 📖 Overview
+
+**Lara-Ollama-RAG** is a production-ready implementation of Retrieval-Augmented Generation. It allows developers to chat with private data without using cloud APIs or paying for tokens. 
+
+By combining **Laravel 11**, **pgvector**, and **Ollama**, this project offers a secure, 100% local knowledge engine that stays entirely on your infrastructure.
+
+---
+
+## 🛠️ System Architecture
+
+The system is architected to handle heavy AI tasks in the background using Database Queues, ensuring the web interface remains fast.
+
+```mermaid
+graph TD
+    A[Local Documents] -->|Artisan: recall:ingest| B(Ingestor)
+    B -->|Dispatch| C{Database Queue}
+    C -->|Background Job| D[Smart Chunker]
+    D -->|Ollama API| E[Vector Generator]
+    E -->|Storage| F[(PostgreSQL pgvector)]
+    
+    G[User Query] -->|RecallEngine| H[Similarity Search]
+    F -->|Top Matches| H
+    H -->|Augmented Prompt| I[Llama 3.2]
+    I -->|SSE Stream| J[AlpineJS Chat UI]
+```
+
+
+## ✨ Key Features
+
+- 🚀 **SSE Streaming**  
+  Character-by-character response delivery for a modern AI feel.
+
+- 📦 **Asynchronous Ingestion**  
+  AI embeddings are processed in the background via **Database Queues**.
+
+- 🔍 **Vector Similarity Search**  
+  Uses **Cosine Distance** for semantic document retrieval.
+
+- 📝 **Smart Chunking**  
+  Preserves context by splitting documents at natural paragraph breaks.
+
+- 🔒 **Privacy First**  
+  No data ever leaves your **local environment**.
+
+
+## 🚀 Installation & Setup
+
+### 1️⃣ Database Infrastructure (Docker)
+
+Start the **pgvector-enabled PostgreSQL container**:
+
+```bash
 docker run --name lara-recall-db -e POSTGRES_PASSWORD=root -p 5433:5432 -d pgvector/pgvector:pg17
-2. Environment Configuration
-Set up your .env to connect to the local AI and Database:
-code
-Env
+```
+
+---
+
+### 2️⃣ Local AI Setup (Ollama)
+
+Ensure **Ollama** is installed and running, then pull the required models:
+
+```bash
+ollama pull llama3.2:3b-instruct-q5_K_M
+ollama pull nomic-embed-text
+```
+
+---
+
+### 3️⃣ Application Configuration
+
+Update your `.env` file with the following settings:
+
+```env
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5433
@@ -56,29 +88,53 @@ DB_DATABASE=postgres
 DB_USERNAME=postgres
 DB_PASSWORD=root
 
-QUEUE_CONNECTION=redis
-REDIS_CLIENT=predis
+# Scalable Background Processing
+QUEUE_CONNECTION=database
 
-OLLAMA_URL=http://localhost:11434
+# Ollama Models
 OLLAMA_MODEL_CHAT=llama3.2:3b-instruct-q5_K_M
 OLLAMA_MODEL_EMBED=nomic-embed-text
-3. Usage
-A. Ingest knowledge:
-code
-Bash
-php artisan recall:ingest /path/to/documents
-B. Start the scalable worker:
-code
-Bash
-php artisan queue:work
-C. Launch and Chat:
-code
-Bash
+```
+
+---
+
+### 4️⃣ Build the System
+
+Run the following commands inside your project directory:
+
+```bash
+composer install
+php artisan migrate
 php artisan serve
-📂 Key Codebase Highlights
-app/Services/RecallEngine.php: The "Brain" of the application handling vector math and AI prompts.
-app/Jobs/GenerateEmbeddingJob.php: Scalable background processing for AI vectors.
-app/Http/Controllers/ChatController.php: Handles the SSE streaming logic.
-app/Console/Commands/IngestFiles.php: The recursive document scanner.
-📄 License
-Built with ❤️ for the Laravel and AI Community.
+```
+
+---
+
+## 📂 Project Structure
+
+| Path | Responsibility |
+|-----|----------------|
+| `app/Services` | AI service layer for embeddings and chat interaction |
+| `app/Jobs` | Background jobs for document ingestion and embedding generation |
+| `app/Http/Controllers` | Handles API requests and responses |
+| `database/migrations` | Database schema including pgvector setup |
+| `routes/web.php` | Application routes |
+| `resources/views` | Frontend interface for the AI chat |
+
+
+## 📝 Document Ingestion
+
+To feed your AI knowledge base, place your documents in a folder and run:
+
+```bash
+php artisan recall:ingest path/to/your/knowledge
+```
+
+Start the queue worker in a separate terminal to process the vectors:
+
+```bash
+php artisan queue:work
+```
+---
+
+Built with **Laravel 11** & **Ollama**. 🐘🤖
